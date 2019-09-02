@@ -52,7 +52,7 @@ public class MemoryMappedFile {
 		final RandomAccessFile backingFile = new RandomAccessFile(this.loc, "rw");
 		backingFile.setLength(this.size);
 		final FileChannel ch = backingFile.getChannel();
-		this.addr = (long) mmap.invoke(ch, 1, 0L, this.size);
+		this.addr = Long.parseLong(mmap.invoke(ch, 1, 0L, this.size).toString());
 		ch.close();
 		backingFile.close();
 	}
