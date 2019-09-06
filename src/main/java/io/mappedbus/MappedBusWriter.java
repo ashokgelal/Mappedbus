@@ -66,7 +66,7 @@ public class MappedBusWriter {
 	public MappedBusWriter(String fileName, long fileSize, int recordSize) {
 		this.fileName = fileName;
 		this.fileSize = fileSize;
-		this.entrySize = recordSize + Length.RecordHeader;
+		this.entrySize = recordSize + MappedBusConstants.Length.RecordHeader;
 	}
 	
 	/**
@@ -80,7 +80,7 @@ public class MappedBusWriter {
 		} catch(Exception e) {
 			throw new IOException("Unable to open the file: " + fileName, e);
 		}
-		mem.compareAndSwapLong(Structure.Limit, 0, Structure.Data);
+		mem.compareAndSwapLong(MappedBusConstants.Structure.Limit, 0, MappedBusConstants.Structure.Data);
 	}
 
 	/**
@@ -98,9 +98,9 @@ public class MappedBusWriter {
 	protected long writeRecord(MappedBusMessage message) throws EOFException {
 		long limit = allocate();
 		long commitPos = limit;
-		limit += Length.StatusFlag;
+		limit += MappedBusConstants.Length.StatusFlag;
 		mem.putInt(limit, message.type());
-		limit += Length.Metadata;
+		limit += MappedBusConstants.Length.Metadata;
 		message.write(mem, limit);
 		return commitPos;
 	}
@@ -122,15 +122,15 @@ public class MappedBusWriter {
 	protected long writeRecord(byte[] src, int offset, int length) throws EOFException {
 		long limit = allocate();
 		long commitPos = limit;
-		limit += Length.StatusFlag;
+		limit += MappedBusConstants.Length.StatusFlag;
 		mem.putInt(limit, length);
-		limit += Length.Metadata;
+		limit += MappedBusConstants.Length.Metadata;
 		mem.setBytes(limit, src, offset, length);
 		return commitPos;
 	}
 
 	private long allocate() throws EOFException {
-		long limit = mem.getAndAddLong(Structure.Limit, entrySize);
+		long limit = mem.getAndAddLong(MappedBusConstants.Structure.Limit, entrySize);
 		if (limit + entrySize > fileSize) {
 			throw new EOFException("End of file was reached");
 		}
@@ -138,7 +138,7 @@ public class MappedBusWriter {
 	}
 
 	protected boolean commit(long commitPos) {
-		return mem.compareAndSwapInt(commitPos, StatusFlag.NotSet, StatusFlag.Commit);
+		return mem.compareAndSwapInt(commitPos, MappedBusConstants.StatusFlag.NotSet, MappedBusConstants.StatusFlag.Commit);
 	}
 
 	/**
